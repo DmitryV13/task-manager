@@ -1,0 +1,9 @@
+entity Task {
+    title String,
+    description String,
+    status Boolean
+}
+
+paginate Task with infinite-scroll
+
+service Task with serviceClass
