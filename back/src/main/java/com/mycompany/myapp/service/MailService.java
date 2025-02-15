@@ -1,9 +1,16 @@
 package com.mycompany.myapp.service;
 
+import com.mycompany.myapp.config.MailProperties;
 import com.mycompany.myapp.domain.User;
+import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
+import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Locale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +42,8 @@ public class MailService {
 
     private final JavaMailSender javaMailSender;
 
+    private final MailProperties mailProperties;
+
     private final MessageSource messageSource;
 
     private final SpringTemplateEngine templateEngine;
@@ -42,13 +51,48 @@ public class MailService {
     public MailService(
         JHipsterProperties jHipsterProperties,
         JavaMailSender javaMailSender,
+        MailProperties mailProperties,
         MessageSource messageSource,
         SpringTemplateEngine templateEngine
     ) {
         this.jHipsterProperties = jHipsterProperties;
         this.javaMailSender = javaMailSender;
+        this.mailProperties = mailProperties;
         this.messageSource = messageSource;
         this.templateEngine = templateEngine;
+    }
+
+    //@Async
+    public void sendSimpleMail(
+        String to,
+        String text
+    ){
+        try {
+            MimeMessage message = javaMailSender.createMimeMessage();
+
+            message.setFrom(new InternetAddress(mailProperties.getMailHost()));
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
+
+            String htmlTemplate = readFile("src/main/resources/templates/mail/simpleEmail.html");
+            String htmlContent = htmlTemplate.replace(
+                "${body}",
+                text);
+
+            message.setSubject("Mail Test / To Do List");
+            message.setContent(htmlContent, "text/html;charset=utf-8");
+
+            javaMailSender.send(message);
+
+        }catch(MessagingException e){
+            throw new RuntimeException("Failed to send e-mail");
+        }catch(IOException e){
+            throw new RuntimeException("Failed to find template for e-mail");
+        }
+    }
+
+    private String readFile(String filePath) throws IOException {
+        Path path = Path.of(filePath);
+        return Files.readString(path, StandardCharsets.UTF_8);
     }
 
     @Async

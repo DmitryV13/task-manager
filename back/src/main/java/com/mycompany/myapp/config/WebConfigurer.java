@@ -6,6 +6,8 @@ import jakarta.servlet.*;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.Properties;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.server.*;
@@ -14,6 +16,8 @@ import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerF
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -93,4 +97,24 @@ public class WebConfigurer implements ServletContextInitializer, WebServerFactor
         }
         return new CorsFilter(source);
     }
+
+//    @Bean
+//    public JavaMailSender mailSender() {
+//        JavaMailSenderImpl javaMailSender = new JavaMailSenderImpl();
+//
+//        javaMailSender.setProtocol("smtp");
+//        javaMailSender.setHost("smtp.mail.ru");
+//        javaMailSender.setPort(587);
+//        javaMailSender.setUsername("rentshopvehicle.webapplication@mail.ru");
+//        javaMailSender.setPassword("BKRZTN085g5qRbxAmhhT");
+//        javaMailSender.setDefaultEncoding("UTF-8");
+//
+//        Properties props = javaMailSender.getJavaMailProperties();
+//        props.put("mail.transport.protocol", "smtp");
+//        props.put("mail.smtp.auth", "true");
+//        props.put("mail.smtp.starttls.enable", "true");
+//        props.put("mail.debug", "true");
+//
+//        return javaMailSender;
+//    }
 }
