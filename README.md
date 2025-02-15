@@ -37,7 +37,7 @@ Then create a container
 ```bash
   docker run \
   --name l3-db-cont \
-  --network l3-network
+  --network l3-network \
   -p 5432:5432 \
   -e POSTGRES_DB=tdlist \
   -e POSTGRES_USER=admin \
