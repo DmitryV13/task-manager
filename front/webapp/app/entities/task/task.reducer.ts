@@ -18,8 +18,22 @@ const initialState: EntityState<ITask> = {
 
 const apiUrl = 'api/tasks';
 
-// Actions
+// Actions mail-send
 
+export const sendSimpleMail = createAsyncThunk(
+  'task/update_entity',
+  async (mailData: { to: string; msg: string },  { rejectWithValue }) => {
+    try {
+      const requestUrl = `${apiUrl}/mail-send`;
+      await axios.post(requestUrl, mailData); 
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'Error creating task');
+    }
+  },
+  { serializeError: serializeAxiosError }
+);
+
+//
 export const getEntities = createAsyncThunk(
   'task/fetch_entity_list',
   async ({ page, size, sort }: IQueryParams) => {

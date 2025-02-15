@@ -8,6 +8,7 @@ import { faSort, faSortDown, faSortUp } from '@fortawesome/free-solid-svg-icons'
 import { ASC, DESC, ITEMS_PER_PAGE } from '../../shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from '../../shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from '../../config/store';
+import EmailModal from './email-modal';
 
 import { getEntities, reset } from './task.reducer';
 
@@ -104,13 +105,18 @@ export const Task = () => {
       <h2 id="task-heading" data-cy="TaskHeading">
         Tasks
         <div className="d-flex justify-content-end">
-          <Button className="me-2" color="info" onClick={handleSyncList} disabled={loading}>
-            <FontAwesomeIcon icon="sync" spin={loading} /> Refresh list
-          </Button>
-          <Link to="/task/new" className="btn btn-primary jh-create-entity" id="jh-create-entity" data-cy="entityCreateButton">
-            <FontAwesomeIcon icon="plus" />
-            &nbsp; Create a new Task
-          </Link>
+          <EmailModal />
+          <div>
+             <Button className="me-2" color="info" onClick={handleSyncList} disabled={loading}>
+              <FontAwesomeIcon icon="sync" spin={loading} /> Refresh list
+            </Button>
+          </div>
+          <div>
+            <Link to="/task/new" className="btn btn-primary jh-create-entity" id="jh-create-entity" data-cy="entityCreateButton">
+              <FontAwesomeIcon icon="plus" />
+              &nbsp; Create a new Task
+            </Link>
+          </div>
         </div>
       </h2>
       <div className="table-responsive">
@@ -149,7 +155,7 @@ export const Task = () => {
                     </td>
                     <td>{task.title}</td>
                     <td>{task.description}</td>
-                    <td>{task.status ? 'true' : 'false'}</td>
+                    <td>{task.status ? 'done' : 'undone'}</td>
                     <td className="text-end">
                       <div className="btn-group flex-btn-group-container">
                         <Button tag={Link} to={`/task/${task.id}`} color="info" size="sm" data-cy="entityDetailsButton">

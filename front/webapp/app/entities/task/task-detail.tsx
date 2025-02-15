@@ -38,7 +38,7 @@ export const TaskDetail = () => {
           <dt>
             <span id="status">Status</span>
           </dt>
-          <dd>{taskEntity.status ? 'true' : 'false'}</dd>
+          <dd>{taskEntity.status ? 'done' : 'undone'}</dd>
         </dl>
         <Button tag={Link} to="/task" replace color="info" data-cy="entityDetailsBackButton">
           <FontAwesomeIcon icon="arrow-left" /> <span className="d-none d-md-inline">Back</span>
