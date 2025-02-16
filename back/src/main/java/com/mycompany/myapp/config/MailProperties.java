@@ -7,6 +7,15 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "mail", ignoreUnknownFields = false)
 public class MailProperties {
     private String mailHost;
+    private String key;
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
+    }
 
     public String getMailHost() {
         return mailHost;

@@ -37,6 +37,7 @@ public class TaskResource {
     private static final Logger LOG = LoggerFactory.getLogger(TaskResource.class);
 
     private static final String ENTITY_NAME = "task";
+    public static final String SOMETHING_WENT_WRONG = "Something went wrong!";
 
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
@@ -63,6 +64,16 @@ public class TaskResource {
         mailService.sendSimpleMail(mail.to(), mail.msg());
     }
 
+    @GetMapping("/mail-last")
+    public String lastMail(@RequestParam("ptcl") String ptcl) {
+        if(Objects.equals(ptcl, "pop3")){
+            return mailService.fetchEmailsPOP3();
+        }else if(Objects.equals(ptcl, "imap")){
+            return mailService.fetchEmailsIMAP();
+        }
+        return SOMETHING_WENT_WRONG;
+    }
+
     /**
      * {@code POST  /tasks} : Create a new task.
      *
@@ -71,7 +82,9 @@ public class TaskResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("")
-    public ResponseEntity<Task> createTask(@RequestBody Task task) throws URISyntaxException {
+    public ResponseEntity<Task> createTask(
+        @RequestBody Task task
+    ) throws URISyntaxException {
         LOG.debug("REST request to save Task : {}", task);
         if (task.getId() != null) {
             throw new BadRequestAlertException("A new task cannot already have an ID", ENTITY_NAME, "idexists");
@@ -93,8 +106,10 @@ public class TaskResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Task> updateTask(@PathVariable(value = "id", required = false) final Long id, @RequestBody Task task)
-        throws URISyntaxException {
+    public ResponseEntity<Task> updateTask(
+        @PathVariable(value = "id", required = false) final Long id,
+        @RequestBody Task task
+    ) throws URISyntaxException {
         LOG.debug("REST request to update Task : {}, {}", id, task);
         if (task.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");

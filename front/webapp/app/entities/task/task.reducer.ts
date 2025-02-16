@@ -23,12 +23,8 @@ const apiUrl = 'api/tasks';
 export const sendSimpleMail = createAsyncThunk(
   'task/update_entity',
   async (mailData: { to: string; msg: string },  { rejectWithValue }) => {
-    try {
-      const requestUrl = `${apiUrl}/mail-send`;
-      await axios.post(requestUrl, mailData); 
-    } catch (error) {
-      return rejectWithValue(error.response?.data || 'Error creating task');
-    }
+    const requestUrl = `${apiUrl}/mail-send`;
+    return await axios.post(requestUrl, mailData); 
   },
   { serializeError: serializeAxiosError }
 );

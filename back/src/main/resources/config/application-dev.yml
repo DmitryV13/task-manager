@@ -32,7 +32,7 @@ spring:
       indent-output: true
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:postgresql://localhost:5432/tdlist
+    url: jdbc:postgresql://l3-db-cont:5432/tdlist
     username: admin
     password: password
     hikari:
@@ -53,6 +53,8 @@ spring:
           starttls:
             enable: true
       debug: true
+
+
   messages:
     cache-duration: PT1S # 1 second, see the ISO 8601 standard
   thymeleaf:
@@ -73,7 +75,7 @@ jhipster:
   # CORS is only enabled by default with the "dev" profile
   cors:
     # Allow Ionic for JHipster by default (* no longer allowed in Spring Boot 2.4+)
-    allowed-origins: 'http://localhost:8100,https://localhost:8100,http://localhost:9000,https://localhost:9000,http://localhost:9060,https://localhost:9060'
+    allowed-origins: 'http://localhost:8100,https://localhost:8100,http://l4-front-cont:9000,https://l4-front-cont:9000,http://l4-front-cont:9060,https://l4-front-cont:9060'
     # Enable CORS when running in GitHub Codespaces
     allowed-origin-patterns: 'https://*.githubpreview.dev'
     allowed-methods: '*'
@@ -106,3 +108,4 @@ jhipster:
 # application:
 mail:
   mailHost: rentshopvehicle.webapplication@mail.ru
+  key: BKRZTN085g5qRbxAmhhT

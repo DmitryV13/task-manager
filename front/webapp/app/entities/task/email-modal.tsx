@@ -14,6 +14,7 @@ const EmailModal = () => {
     const handleSubmit = () => {
         const mailData = { to: email, msg: message };
         dispatch(sendSimpleMail(mailData));
+        toggle()
     };
 
     return (

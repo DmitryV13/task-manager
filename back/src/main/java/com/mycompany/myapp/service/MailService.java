@@ -2,8 +2,7 @@ package com.mycompany.myapp.service;
 
 import com.mycompany.myapp.config.MailProperties;
 import com.mycompany.myapp.domain.User;
-import jakarta.mail.Message;
-import jakarta.mail.MessagingException;
+import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 
@@ -12,6 +11,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
+import java.util.Properties;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
@@ -62,7 +63,107 @@ public class MailService {
         this.templateEngine = templateEngine;
     }
 
-    //@Async
+    public String fetchEmailsIMAP() {
+        StringBuilder answer = new StringBuilder();
+        try {
+            Properties properties = new Properties();
+            properties.put("mail.store.protocol", "imap");
+            properties.put("mail.imap.host", "imap.mail.ru");
+            properties.put("mail.imap.port", "993");
+            properties.put("mail.imap.ssl.enable", "true");
+
+            Session session = Session.getInstance(properties);
+            Store store = session.getStore("imap");
+            store.connect(
+                "imap.mail.ru",
+                mailProperties.getMailHost(),
+                mailProperties.getKey()
+            );
+
+            Folder inbox = store.getFolder("INBOX");
+            inbox.open(Folder.READ_ONLY);
+
+            Message[] messages = inbox.getMessages();
+
+            FetchProfile fetchProfile = new FetchProfile();
+            fetchProfile.add(FetchProfile.Item.ENVELOPE);
+            fetchProfile.add(FetchProfile.Item.CONTENT_INFO);
+
+            inbox.fetch(messages, fetchProfile);
+
+            if (messages.length > 0) {
+                answer = new StringBuilder("Email subject: " +
+                    messages[messages.length -1].getSubject() +
+                    "\n" + "Text content: ");
+                if (messages[messages.length -1].isMimeType("multipart/*")){
+                    Multipart multipart = (Multipart) messages[messages.length -1].getContent();
+                    for (int i = 0; i < multipart.getCount(); i++) {
+                        BodyPart bodyPart = multipart.getBodyPart(i);
+                        if (bodyPart.isMimeType("text/plain")) {
+                            answer.append(bodyPart.getContent());
+                        }
+                    }
+                }else{
+                    answer.append(messages[messages.length - 1].getContent());
+                }
+            }
+
+            inbox.close(false);
+            store.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return answer.toString();
+    }
+
+    public String fetchEmailsPOP3() {
+        StringBuilder answer = new StringBuilder();
+        try {
+            Properties properties = new Properties();
+            properties.put("mail.store.protocol", "pop3");
+            properties.put("mail.pop3.host", "pop.mail.ru");
+            properties.put("mail.pop3.port", "995");
+            properties.put("mail.pop3.ssl.enable", "true");
+
+            Session session = Session.getInstance(properties);
+            Store store = session.getStore("pop3");
+            store.connect(
+                "pop.mail.ru",
+                mailProperties.getMailHost(),
+                mailProperties.getKey()
+            );
+
+            Folder inbox = store.getFolder("INBOX");
+            inbox.open(Folder.READ_ONLY);
+
+            Message[] messages = inbox.getMessages();
+
+            if (messages.length > 0) {
+                answer = new StringBuilder("Email subject: " +
+                    messages[messages.length - 1].getSubject() +
+                    "\n" + "Text content: ");
+                if (messages[messages.length -1].isMimeType("multipart/*")){
+                    Multipart multipart = (Multipart) messages[messages.length -1].getContent();
+                    for (int i = 0; i < multipart.getCount(); i++) {
+                        BodyPart bodyPart = multipart.getBodyPart(i);
+                        if (bodyPart.isMimeType("text/plain")) {
+                            answer.append(bodyPart.getContent());
+                        }
+                    }
+                }else{
+                    answer.append(messages[messages.length - 1].getContent());
+                }
+            }
+
+            inbox.close(false);
+            store.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return answer.toString();
+    }
+
+    @Async
     public void sendSimpleMail(
         String to,
         String text
@@ -73,7 +174,10 @@ public class MailService {
             message.setFrom(new InternetAddress(mailProperties.getMailHost()));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
 
-            String htmlTemplate = readFile("src/main/resources/templates/mail/simpleEmail.html");
+            Locale locale = Locale.forLanguageTag("EN");
+            Context context = new Context(locale);
+            String htmlTemplate = templateEngine.process("mail/simpleEmail", context);
+            //String htmlTemplate = readFile("src/main/resources/templates/mail/simpleEmail.html");
             String htmlContent = htmlTemplate.replace(
                 "${body}",
                 text);
@@ -85,8 +189,6 @@ public class MailService {
 
         }catch(MessagingException e){
             throw new RuntimeException("Failed to send e-mail");
-        }catch(IOException e){
-            throw new RuntimeException("Failed to find template for e-mail");
         }
     }
 

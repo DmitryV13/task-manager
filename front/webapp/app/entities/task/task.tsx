@@ -9,6 +9,8 @@ import { ASC, DESC, ITEMS_PER_PAGE } from '../../shared/util/pagination.constant
 import { overridePaginationStateWithQueryParams } from '../../shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from '../../config/store';
 import EmailModal from './email-modal';
+import IMAPModal from './imap-email';
+import POP3Modal from './pop3-email';
 
 import { getEntities, reset } from './task.reducer';
 
@@ -105,6 +107,8 @@ export const Task = () => {
       <h2 id="task-heading" data-cy="TaskHeading">
         Tasks
         <div className="d-flex justify-content-end">
+          <POP3Modal />
+          <IMAPModal />
           <EmailModal />
           <div>
              <Button className="me-2" color="info" onClick={handleSyncList} disabled={loading}>
