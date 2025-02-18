@@ -11,6 +11,8 @@ import { useAppDispatch, useAppSelector } from '../../config/store';
 import EmailModal from './email-modal';
 import IMAPModal from './imap-email';
 import POP3Modal from './pop3-email';
+import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
 
 import { getEntities, reset } from './task.reducer';
 
@@ -24,19 +26,79 @@ export const Task = () => {
   );
   const [sorting, setSorting] = useState(false);
 
-  const taskList = useAppSelector(state => state.task.entities);
+  //const taskList = useAppSelector(state => state.task.entities);
   const loading = useAppSelector(state => state.task.loading);
   const links = useAppSelector(state => state.task.links);
-  const updateSuccess = useAppSelector(state => state.task.updateSuccess);
+  //const updateSuccess = useAppSelector(state => state.task.updateSuccess);
+
+  const [taskList, setTaskList] = useState([]);
+  const [stompClient, setStompClient] = useState<Client | null>(null);
+
+  useEffect(() => {
+    const brokerURL = 'http://l5-back-cont:8080/ws';
+    const client = new Client({
+      webSocketFactory: () => new SockJS(brokerURL),
+      reconnectDelay: 5000,
+      heartbeatIncoming: 4000,
+      heartbeatOutgoing: 4000,
+      debug: (str) => {
+        console.log('STOMP:', str); 
+      },
+      onConnect: () => {
+        console.log('WebSocket connected');
+        client.subscribe('/topic/all-tasks', message => {
+          try {
+            const data = JSON.parse(message.body);
+            console.log('Received data:', data);
+    
+            if (Array.isArray(data)) {
+              setTaskList(data);
+            } else {
+              console.error('Unexpected response:', data);
+              setTaskList([]);
+            }
+          } catch (error) {
+            console.error('Error parsing message:', error);
+            setTaskList([]);
+          }
+        });
+    
+        client.publish({ destination: '/ws-req/all-tasks' });
+      },
+      onStompError: frame => {
+        console.error('WebSocket STOMP error:', frame.headers.message);
+      },
+      onWebSocketError: event => {
+        console.error('WebSocket error:', event);
+      },
+      onWebSocketClose: event => {
+        console.warn('WebSocket closed:', event);
+      },
+      onDisconnect: () => {
+        console.log('WebSocket disconnected');
+      },
+    });
+
+    client.activate(); 
+    setStompClient(client); 
+
+    
+    return () => {
+      if (client) {
+        client.deactivate(); 
+      }
+    };
+  }, []);
+
 
   const getAllEntities = () => {
-    dispatch(
-      getEntities({
-        page: paginationState.activePage - 1,
-        size: paginationState.itemsPerPage,
-        sort: `${paginationState.sort},${paginationState.order}`,
-      }),
-    );
+    // dispatch(
+    //   getEntities({
+    //     page: paginationState.activePage - 1,
+    //     size: paginationState.itemsPerPage,
+    //     sort: `${paginationState.sort},${paginationState.order}`,
+    //   }),
+    // );
   };
 
   const resetAll = () => {
@@ -45,22 +107,22 @@ export const Task = () => {
       ...paginationState,
       activePage: 1,
     });
-    dispatch(getEntities({}));
+    //dispatch(getEntities({}));
   };
 
   useEffect(() => {
     resetAll();
   }, []);
 
-  useEffect(() => {
-    if (updateSuccess) {
-      resetAll();
-    }
-  }, [updateSuccess]);
+  // useEffect(() => {
+  //   if (updateSuccess) {
+  //     resetAll();
+  //   }
+  // }, [updateSuccess]);
 
-  useEffect(() => {
-    getAllEntities();
-  }, [paginationState.activePage]);
+  // useEffect(() => {
+  //   getAllEntities();
+  // }, [paginationState.activePage]);
 
   const handleLoadMore = () => {
     if ((window as any).pageYOffset > 0) {
@@ -71,12 +133,12 @@ export const Task = () => {
     }
   };
 
-  useEffect(() => {
-    if (sorting) {
-      getAllEntities();
-      setSorting(false);
-    }
-  }, [sorting]);
+  // useEffect(() => {
+  //   if (sorting) {
+  //     getAllEntities();
+  //     setSorting(false);
+  //   }
+  // }, [sorting]);
 
   const sort = p => () => {
     dispatch(reset());
@@ -101,6 +163,18 @@ export const Task = () => {
     }
     return order === ASC ? faSortUp : faSortDown;
   };
+
+  // return (
+  //   <div>
+  //     <h1>Task List</h1>
+  //     <ul>
+  //       {taskList.map((task, index) => (
+  //         <li key={index}>{task.name}</li>
+  //       ))}
+  //     </ul>
+  //   </div>
+  // );
+// };
 
   return (
     <div>
