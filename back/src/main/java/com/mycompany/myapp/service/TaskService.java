@@ -2,11 +2,14 @@ package com.mycompany.myapp.service;
 
 import com.mycompany.myapp.domain.Task;
 import com.mycompany.myapp.repository.TaskRepository;
+
+import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,8 +24,16 @@ public class TaskService {
 
     private final TaskRepository taskRepository;
 
-    public TaskService(TaskRepository taskRepository) {
+    private final SimpMessagingTemplate messagingTemplate;
+
+    public TaskService(TaskRepository taskRepository, SimpMessagingTemplate messagingTemplate) {
         this.taskRepository = taskRepository;
+        this.messagingTemplate = messagingTemplate;
+    }
+
+    private void sendTaskUpdate() {
+        List<Task> tasks = findAllList();
+        messagingTemplate.convertAndSend("/topic/tasks", tasks);
     }
 
     /**
@@ -33,6 +44,7 @@ public class TaskService {
      */
     public Task save(Task task) {
         LOG.debug("Request to save Task : {}", task);
+        sendTaskUpdate();
         return taskRepository.save(task);
     }
 
@@ -44,6 +56,7 @@ public class TaskService {
      */
     public Task update(Task task) {
         LOG.debug("Request to update Task : {}", task);
+        sendTaskUpdate();
         return taskRepository.save(task);
     }
 
@@ -86,6 +99,12 @@ public class TaskService {
         return taskRepository.findAll(pageable);
     }
 
+    @Transactional(readOnly = true)
+    public List<Task> findAllList() {
+        LOG.debug("Request to get all Tasks");
+        return taskRepository.findAll();
+    }
+
     /**
      * Get one task by id.
      *
@@ -106,5 +125,6 @@ public class TaskService {
     public void delete(Long id) {
         LOG.debug("Request to delete Task : {}", id);
         taskRepository.deleteById(id);
+        sendTaskUpdate();
     }
 }

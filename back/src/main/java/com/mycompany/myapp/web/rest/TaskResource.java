@@ -20,6 +20,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.config.JHipsterDefaults;
@@ -174,6 +176,13 @@ public class TaskResource {
         Page<Task> page = taskService.findAll(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
+
+    @MessageMapping("/all-tasks")
+    @SendTo("/topic/all-tasks")
+    public List<Task> getAllTasks() {
+        LOG.debug("WEBSOCKETS: connection established");
+        return taskService.findAllList();
     }
 
     /**
