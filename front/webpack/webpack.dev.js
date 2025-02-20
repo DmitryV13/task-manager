@@ -12,7 +12,7 @@ const ENV = 'development';
 
 module.exports = async options =>
   webpackMerge(await commonConfig({ env: ENV }), {
-    devtool: 'cheap-module-source-map', // https://reactjs.org/docs/cross-origin-errors.html
+    devtool: 'cheap-module-source-map', 
     mode: ENV,
     entry: ['./webapp/app/index'],
     output: {
@@ -49,16 +49,22 @@ module.exports = async options =>
       static: {
         directory: './target/classes/static/',
       },
+      host: '0.0.0.0',
       port: 9060,
       proxy: [
         {
-          context: ['/api', '/services', '/management', '/v3/api-docs', '/h2-console'],
-          target: `http${options.tls ? 's' : ''}://l5-back-cont:8080`,
+          context: ['/api', '/services', '/management', '/v3/api-docs', '/h2-console', '/ws'],
+          target: `http://l5backcont:8080`,
           secure: false,
-          сhangeOrigin: options.tls,
+          ws: true,
+          changeOrigin: false,
         },
       ],
       historyApiFallback: true,
+      allowedHosts: 'all', // Allow connections from any container
+      client: {
+        webSocketURL: 'ws://front:8080/ws',
+      },
     },
 
     stats: process.env.JHI_DISABLE_WEBPACK_LOGS ? 'none' : options.stats,
@@ -74,7 +80,7 @@ module.exports = async options =>
           host: '0.0.0.0',
           port: 9000,
           proxy: {
-            target: `http${options.tls ? 's' : ''}://l5-back-cont:${options.watch ? '8080' : '9060'}`,
+            target: `http${options.tls ? 's' : ''}://l5backcont:${options.watch ? '8080' : '9060'}`,
             ws: true,
             proxyOptions: {
               changeOrigin: false, //pass the Host header to the backend unchanged https://github.com/Browsersync/browser-sync/issues/430
@@ -85,13 +91,6 @@ module.exports = async options =>
               heartbeatTimeout: 60000,
             },
           },
-          /*
-      ,ghostMode: { // uncomment this part to disable BrowserSync ghostMode; https://github.com/jhipster/generator-jhipster/issues/11116
-        clicks: false,
-        location: false,
-        forms: false,
-        scroll: false
-      } */
         },
         {
           reload: false,
@@ -103,3 +102,5 @@ module.exports = async options =>
       }),
     ].filter(Boolean),
   });
+
+  

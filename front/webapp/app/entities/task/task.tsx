@@ -35,7 +35,7 @@ export const Task = () => {
   const [stompClient, setStompClient] = useState<Client | null>(null);
 
   useEffect(() => {
-    const brokerURL = 'http://l5-back-cont:8080/ws';
+    const brokerURL = '/ws';
     const client = new Client({
       webSocketFactory: () => new SockJS(brokerURL),
       reconnectDelay: 5000,
